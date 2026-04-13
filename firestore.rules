@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Legacy mapping path based on the primaryAppId in firebase conf
+    match /artifacts/rashikas-recipes-v2/public/data/recipes/{recipeId} {
+      // Allow anybody to read the public recipe vault
+      allow read: if true;
+      
+      // Allow currently authenticated users to create new recipes
+      // Setting 'authorId' ensures we know who made them
+      allow create: if request.auth != null 
+                    && request.resource.data.authorId == request.auth.uid;
+      
+      // Allow updates or deletions ONLY if the user is authenticated 
+      // AND their uid matches the authorId of the recipe
+      allow update, delete: if request.auth != null
+                            && resource.data.authorId == request.auth.uid;
+    }
+  }
+}
