@@ -99,7 +99,7 @@ export default function App() {
       {showAIModifier && (
         <AIModifierModal 
           recipe={displayRecipes.find(r => r.id === selectedRecipeId)} 
-          onClose={() => setShowSettings(false)}
+          onClose={() => setShowAIModifier(false)}
           onModified={(newDraft) => {
             setFormData(newDraft);
             setShowAIModifier(false);
@@ -167,7 +167,7 @@ export default function App() {
             initialData={formData} 
             isSaving={isSaving}
             editingRecipeId={editingRecipeId}
-            onCancel={() => editingRecipeId ? setCurrentView('detail') : setCurrentView('dump')}
+            onCancel={() => editingRecipeId ? setCurrentView('detail') : setCurrentView('list')}
             onSave={handleSaveForm}
           />
         )}
