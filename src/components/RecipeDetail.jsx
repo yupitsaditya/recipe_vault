@@ -18,7 +18,7 @@ export default function RecipeDetail({ recipe, onBack, onEdit, onDelete, onSousC
     <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden', animation: 'fadeIn 0.5s', position: 'relative' }}>
       
       {/* Header Action Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1.5rem', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+      <div className="action-bar-wrap">
         <button onClick={onBack} style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1.25rem', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', borderRadius: '9999px', fontWeight: 700, boxShadow: 'var(--shadow-sm)' }}>
           <ArrowLeft size={20} style={{ marginRight: '0.5rem' }} /> Vault
         </button>
@@ -59,7 +59,7 @@ export default function RecipeDetail({ recipe, onBack, onEdit, onDelete, onSousC
         </div>
       </div>
 
-      <div style={{ padding: '4rem', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 2fr)', gap: '4rem', maxWidth: '72rem', margin: '0 auto' }}>
+      <div className="recipe-body-grid">
         <div>
           <h3 className="text-3xl font-black mb-8" style={{ borderBottom: '4px solid var(--accent)', display: 'inline-block', paddingBottom: '0.5rem' }}>Ingredients</h3>
           <ul style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

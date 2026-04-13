@@ -278,3 +278,66 @@ input:focus, textarea:focus {
   color: white;
   background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
 }
+
+/* ------------------- RESPONSIVE OVERRIDES ------------------- */
+.recipe-body-grid {
+  padding: 4rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 4rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.action-bar-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sm-flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .sm-flex-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  
+  .recipe-body-grid {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 2.5rem;
+  }
+  
+  .hero-content {
+    padding: 1.5rem;
+    padding-bottom: 2rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem;
+    line-height: 1.1;
+  }
+  
+  .action-bar-wrap {
+    padding: 1rem;
+    position: relative;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .action-bar-wrap button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.875rem !important;
+  }
+}

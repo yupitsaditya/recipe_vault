@@ -114,7 +114,7 @@ export default function App() {
       )}
 
       <header className="header">
-        <div className="max-w-7xl flex flex-col sm-flex-row justify-between items-center" style={{ paddingBlock: '1.25rem', paddingInline: '1rem' }}>
+        <div className="max-w-7xl sm-flex-row justify-between items-center" style={{ paddingBlock: '1.25rem', paddingInline: '1rem' }}>
           <div className="brand-logo" onClick={() => setCurrentView('list')}>
             <BrandLogo />
             <h1 className="text-3xl font-black">Rashika's Vault</h1>
