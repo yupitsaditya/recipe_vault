@@ -340,4 +340,21 @@ input:focus, textarea:focus {
     padding: 0.5rem 1rem !important;
     font-size: 0.875rem !important;
   }
+  
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .header-actions > .btn-primary {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .brand-logo h1 {
+    font-size: 1.75rem;
+  }
 }
