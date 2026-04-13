@@ -1,13 +1,14 @@
 export const getGeminiKey = () => localStorage.getItem('rashika_gemini_key') || "";
 export const setGeminiKey = (key) => {
   localStorage.setItem('rashika_gemini_key', key);
-  localStorage.removeItem('rashika_cached_model_v2');
+  localStorage.removeItem('rashika_cached_model_v4');
+  localStorage.removeItem('rashika_cached_image_model_v2');
 };
 
 const IMAGEN_MODEL = "imagen-4.0-generate-001";
 
 async function getBestModel(apiKey) {
-  let cached = localStorage.getItem('rashika_cached_model_v2');
+  let cached = localStorage.getItem('rashika_cached_model_v4');
   if (cached) return cached;
 
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -18,25 +19,59 @@ async function getBestModel(apiKey) {
   const validModels = models.filter(m => 
     m.supportedGenerationMethods?.includes('generateContent') && 
     m.name.includes('gemini') && 
-    !m.name.includes('vision')
+    !m.name.includes('vision') &&
+    !m.name.includes('image') &&
+    !m.name.includes('lite') && // Strictly avoid all 8B/Lite variants 
+    !m.name.includes('8b')
   );
   
-  // Preferences sorted by CHEAPEST first. 8B is the absolute cheapest, followed by standard flash.
-  const preferences = ['gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-pro', 'gemini-1.5-pro'];
+  // Preferences optimizing for standard flash quality (new and small, but distinctly superior to Lite)
+  const preferences = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
   for (const pref of preferences) {
     if (validModels.find(m => m.name === `models/${pref}`)) {
-      localStorage.setItem('rashika_cached_model_v2', pref);
+      localStorage.setItem('rashika_cached_model_v4', pref);
       return pref;
     }
   }
   
   if (validModels.length > 0) {
     const fallback = validModels[0].name.replace('models/', '');
-    localStorage.setItem('rashika_cached_model_v2', fallback);
+    localStorage.setItem('rashika_cached_model_v4', fallback);
     return fallback;
   }
   
   throw new GeminiError("No compatible generation models found for your API key.");
+}
+
+async function getBestImageModel(apiKey) {
+  let cached = localStorage.getItem('rashika_cached_image_model_v2');
+  if (cached) return cached;
+
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+  if (!res.ok) throw new GeminiError("Failed to verify models.");
+  
+  const data = await res.json();
+  const imageModels = (data.models || []).filter(m => 
+    m.supportedGenerationMethods?.includes('generateContent') && 
+    m.name.includes('image')
+  );
+  
+  // Target the oldest/cheapest available native generative image model to maximize quota
+  const preferences = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image-preview', 'gemini-3-pro-image-preview'];
+  for (const pref of preferences) {
+    if (imageModels.find(m => m.name === `models/${pref}`)) {
+      localStorage.setItem('rashika_cached_image_model_v2', pref);
+      return pref;
+    }
+  }
+  
+  if (imageModels.length > 0) {
+    const fallback = imageModels[0].name.replace('models/', '');
+    localStorage.setItem('rashika_cached_image_model_v2', fallback);
+    return fallback;
+  }
+  
+  return 'gemini-2.5-flash-image'; // Ultimate dead-end fallback
 }
 
 export class GeminiError extends Error {
@@ -93,9 +128,10 @@ export const generateImage = async (title) => {
   if (!apiKey) throw new GeminiError("API key missing.");
 
   const promptStr = `Professional food photography of ${title}. Culinary magazine style, beautiful warm lighting, highly detailed.`;
+  const imageModel = await getBestImageModel(apiKey);
   
-  // Use the free multimodal generation model rather than the paywalled Imagen endpoint
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`, {
+  // Use dynamically resolved multimodal image block
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${imageModel}:generateContent?key=${apiKey}`, {
     method: 'POST', 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: promptStr }] }] })
