@@ -21,10 +21,6 @@ async function getBestModel(apiKey) {
     !m.name.includes('vision')
   );
   
-  // Log models so you can see them in the browser DevTools Console
-  console.log("----- AVAILABLE GEMINI MODELS ON YOUR KEY -----");
-  console.table(validModels.map(m => ({ Name: m.name, Methods: m.supportedGenerationMethods.join(', ') })));
-  
   // Preferences sorted by CHEAPEST first. 8B is the absolute cheapest, followed by standard flash.
   const preferences = ['gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-pro', 'gemini-1.5-pro'];
   for (const pref of preferences) {

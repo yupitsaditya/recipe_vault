@@ -24,7 +24,7 @@ export default function RecipeDetail({ recipe, onBack, onEdit, onDelete, onSousC
         </button>
         
         <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button onClick={onSousChef} style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1.25rem', borderRadius: '9999px', background: 'var(--brand-gradient)', color: 'white', fontWeight: 700, boxShadow: 'var(--shadow-sm)', border: 'none', cursor: 'pointer' }}>
+          <button onClick={onSousChef} style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1.25rem', borderRadius: '9999px', background: '#8b5cf6', color: 'white', fontWeight: 700, boxShadow: 'var(--shadow-md)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', transition: 'transform 0.2s' }} onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'} onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}>
             <Wand2 size={20} style={{ marginRight: '0.5rem' }} /> AI Sous Chef
           </button>
           {!recipe.isDemo && (
