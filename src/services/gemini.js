@@ -92,7 +92,7 @@ export const parseRecipeText = async (recipeDump) => {
   const apiKey = getGeminiKey();
   if (!apiKey) throw new GeminiError("API key missing. Please check Settings.");
 
-  const prompt = `You are a culinary AI. Translate to English if needed. Extract recipe data into pure JSON matching this exact structure: ${JSON.stringify(recipeJsonSchema)}. Absolutely NO markdown wrapping (no \`\`\`json). Output raw parsable JSON only. \n\nRecipe: ${recipeDump}`;
+  const prompt = `You are a culinary AI. Translate to English if needed. Extract recipe data into pure JSON matching this exact structure: ${JSON.stringify(recipeJsonSchema)}. \n\nIMPORTANT: You must respond with EXACTLY ONE raw JSON object starting with { and ending with }. Do not include any polite conversational text, greetings, or markdown wrapping. \n\nRecipe: ${recipeDump}`;
   const modelName = await getBestModel(apiKey);
   
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
@@ -110,8 +110,13 @@ export const parseRecipeText = async (recipeDump) => {
   let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!resultText) throw new GeminiError("Empty AI response");
   
-  resultText = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(resultText);
+  // Lite models notoriously inject conversational garbage. Forcibly extract only the bounds of the JSON object.
+  const firstBrace = resultText.indexOf('{');
+  const lastBrace = resultText.lastIndexOf('}');
+  if (firstBrace === -1 || lastBrace === -1) throw new GeminiError("Failed to locate JSON payload in AI response.");
+  
+  const cleanJsonStr = resultText.substring(firstBrace, lastBrace + 1);
+  const parsed = JSON.parse(cleanJsonStr);
   return {
     title: parsed.title || 'Untitled Recipe', 
     timeRequired: parsed.timeRequired || '',
@@ -165,7 +170,7 @@ export const modifyRecipeText = async (recipeToModify, promptStr) => {
     ingredients: recipeToModify.ingredients,
     steps: recipeToModify.steps
   };
-  const prompt = `You are an AI Sous Chef. Modify this JSON recipe according to the prompt: "${promptStr}". Recipe: ${JSON.stringify(recipeState)}. \n\nOutput ONLY pure raw JSON strictly following this schema: ${JSON.stringify(recipeJsonSchema)}. DO NOT wrap in \`\`\`json or markdown. Provide raw JSON text only.`;
+  const prompt = `You are an AI Sous Chef. Modify this JSON recipe according to the prompt: "${promptStr}". \n\nRecipe: ${JSON.stringify(recipeState)}. \n\nIMPORTANT: You must respond with EXACTLY ONE raw JSON object starting with { and ending with }. Do not include any polite conversational text, greetings, or markdown wrapping. Your output must strictly match this schema: ${JSON.stringify(recipeJsonSchema)}.`;
   const modelName = await getBestModel(apiKey);
 
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
@@ -175,8 +180,14 @@ export const modifyRecipeText = async (recipeToModify, promptStr) => {
   
   const data = await response.json();
   let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  resultText = resultText.replace(/```json/g, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(resultText);
+  if (!resultText) throw new GeminiError("Empty AI response for modification.");
+
+  const firstBrace = resultText.indexOf('{');
+  const lastBrace = resultText.lastIndexOf('}');
+  if (firstBrace === -1 || lastBrace === -1) throw new GeminiError("Failed to locate JSON payload in AI response.");
+  
+  const cleanJsonStr = resultText.substring(firstBrace, lastBrace + 1);
+  const parsed = JSON.parse(cleanJsonStr);
   
   return {
     ...recipeToModify, 
