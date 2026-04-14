@@ -1,14 +1,14 @@
 export const getGeminiKey = () => localStorage.getItem('rashika_gemini_key') || "";
 export const setGeminiKey = (key) => {
   localStorage.setItem('rashika_gemini_key', key);
-  localStorage.removeItem('rashika_cached_model_v4');
+  localStorage.removeItem('rashika_cached_model_v5');
   localStorage.removeItem('rashika_cached_image_model_v2');
 };
 
 const IMAGEN_MODEL = "imagen-4.0-generate-001";
 
 async function getBestModel(apiKey) {
-  let cached = localStorage.getItem('rashika_cached_model_v4');
+  let cached = localStorage.getItem('rashika_cached_model_v5');
   if (cached) return cached;
 
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -20,23 +20,21 @@ async function getBestModel(apiKey) {
     m.supportedGenerationMethods?.includes('generateContent') && 
     m.name.includes('gemini') && 
     !m.name.includes('vision') &&
-    !m.name.includes('image') &&
-    !m.name.includes('lite') && // Strictly avoid all 8B/Lite variants 
-    !m.name.includes('8b')
+    !m.name.includes('image')
   );
   
-  // Preferences optimizing for standard flash quality (new and small, but distinctly superior to Lite)
-  const preferences = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+  // Pivot to lightweight architecture to evade free-tier quota limits
+  const preferences = ['gemini-2.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest'];
   for (const pref of preferences) {
     if (validModels.find(m => m.name === `models/${pref}`)) {
-      localStorage.setItem('rashika_cached_model_v4', pref);
+      localStorage.setItem('rashika_cached_model_v5', pref);
       return pref;
     }
   }
   
   if (validModels.length > 0) {
     const fallback = validModels[0].name.replace('models/', '');
-    localStorage.setItem('rashika_cached_model_v4', fallback);
+    localStorage.setItem('rashika_cached_model_v5', fallback);
     return fallback;
   }
   
