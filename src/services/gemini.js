@@ -95,6 +95,41 @@ const recipeJsonSchema = {
   }
 };
 
+const extractJsonFromText = (text) => {
+  const firstBrace = text.indexOf('{');
+  if (firstBrace === -1) throw new GeminiError("Failed to locate JSON payload in AI response.");
+  
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  
+  for (let i = firstBrace; i < text.length; i++) {
+    const char = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === '{') depth++;
+      else if (char === '}') {
+        depth--;
+        if (depth === 0) {
+          return text.substring(firstBrace, i + 1);
+        }
+      }
+    }
+  }
+  throw new GeminiError("Unbalanced braces in AI JSON response.");
+};
+
 export const parseRecipeText = async (recipeDump) => {
   const apiKey = getGeminiKey();
   if (!apiKey) throw new GeminiError("API key missing. Please check Settings.");
@@ -118,11 +153,7 @@ export const parseRecipeText = async (recipeDump) => {
   if (!resultText) throw new GeminiError("Empty AI response");
   
   // Lite models notoriously inject conversational garbage. Forcibly extract only the bounds of the JSON object.
-  const firstBrace = resultText.indexOf('{');
-  const lastBrace = resultText.lastIndexOf('}');
-  if (firstBrace === -1 || lastBrace === -1) throw new GeminiError("Failed to locate JSON payload in AI response.");
-  
-  const cleanJsonStr = resultText.substring(firstBrace, lastBrace + 1);
+  const cleanJsonStr = extractJsonFromText(resultText);
   const parsed = JSON.parse(cleanJsonStr);
   return {
     title: parsed.title || 'Untitled Recipe', 
@@ -189,11 +220,7 @@ export const modifyRecipeText = async (recipeToModify, promptStr) => {
   let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!resultText) throw new GeminiError("Empty AI response for modification.");
 
-  const firstBrace = resultText.indexOf('{');
-  const lastBrace = resultText.lastIndexOf('}');
-  if (firstBrace === -1 || lastBrace === -1) throw new GeminiError("Failed to locate JSON payload in AI response.");
-  
-  const cleanJsonStr = resultText.substring(firstBrace, lastBrace + 1);
+  const cleanJsonStr = extractJsonFromText(resultText);
   const parsed = JSON.parse(cleanJsonStr);
   
   return {
