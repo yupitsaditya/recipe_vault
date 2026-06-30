@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Plus, User, Users, Settings, BookOpen, Download, RefreshCw } from 'lucide-react';
+import { Search, Plus, Settings, BookOpen, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { useRecipes } from './hooks/useRecipes';
 
@@ -13,7 +13,7 @@ import AIModifierModal from './components/AIModifierModal';
 
 const DEMO_RECIPES = [
   {
-    id: 'demo-1', title: 'Mummy Wali Dal Tadka', timeRequired: '25 mins', profile: 'Rashika', isDemo: true,
+    id: 'demo-1', title: 'Mummy Wali Dal Tadka', timeRequired: '25 mins', isDemo: true,
     imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80',
     ingredients: [
       { item: 'Toor Dal (Yellow Lentils)', quantity: '1', unit: 'cup' },
@@ -41,7 +41,6 @@ export default function App() {
   const [currentView, setCurrentView] = useState('list'); // list, detail, form, dump
   const [selectedRecipeId, setSelectedRecipeId] = useState(null);
   const [editingRecipeId, setEditingRecipeId] = useState(null);
-  const [activeProfile, setActiveProfile] = useState('Rashika'); 
   const [formData, setFormData] = useState(defaultFormData);
   
   const [showSettings, setShowSettings] = useState(false);
@@ -51,8 +50,7 @@ export default function App() {
   // Filter Logic
   const displayRecipes = recipes.length > 0 ? recipes : DEMO_RECIPES;
   const filteredRecipes = displayRecipes.filter(r => 
-    r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (r.profile && r.profile.toLowerCase().includes(searchQuery.toLowerCase()))
+    r.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreateNew = () => {
@@ -72,7 +70,7 @@ export default function App() {
   const handleSaveForm = async (data) => {
     setIsSaving(true);
     try {
-      const payload = { ...data, profile: activeProfile };
+      const payload = { ...data };
       const newId = await saveRecipe(payload, editingRecipeId);
       setSelectedRecipeId(newId);
       setCurrentView('detail');
@@ -113,29 +111,22 @@ export default function App() {
         />
       )}
 
-      <header className="header">
-        <div className="max-w-7xl sm-flex-row justify-between items-center" style={{ paddingBlock: '1.25rem', paddingInline: '1rem' }}>
-          <div className="brand-logo" onClick={() => setCurrentView('list')}>
-            <BrandLogo />
-            <h1 className="text-3xl font-black">Rashika's Vault</h1>
-          </div>
-          <div className="header-actions">
-            <button className="btn-icon" onClick={() => setShowSettings(true)} title="Settings"><Settings size={20} /></button>
-            <div style={{ display: 'flex', background: 'var(--bg-color)', borderRadius: '9999px', padding: '0.25rem', border: '1px solid var(--border)' }}>
-              {['Rashika', 'Family'].map(p => (
-                <button key={p} onClick={() => setActiveProfile(p)} className={`btn-secondary ${activeProfile === p ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center' }}>
-                  {p === 'Rashika' ? <User size={16} style={{ marginRight: '0.5rem' }}/> : <Users size={16} style={{ marginRight: '0.5rem' }}/>} {p}
-                </button>
-              ))}
+      {currentView === 'list' && (
+        <header className="header">
+          <div className="max-w-7xl sm-flex-row justify-between items-center" style={{ paddingBlock: '1.25rem', paddingInline: '1rem' }}>
+            <div className="brand-logo" onClick={() => setCurrentView('list')}>
+              <BrandLogo />
+              <h1 className="text-3xl font-black">Rashika's Vault</h1>
             </div>
-            {(currentView === 'list' || currentView === 'detail') && (
+            <div className="header-actions">
+              <button className="btn-icon" onClick={() => setShowSettings(true)} title="Settings"><Settings size={20} /></button>
               <button onClick={handleCreateNew} className="btn-primary" style={{ padding: '0.75rem 1.5rem' }}>
                 <Plus size={20} style={{ marginRight: '0.5rem' }}/> Add Recipe
               </button>
-            )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <main className="max-w-7xl" style={{ paddingBlock: '3rem' }}>
         {currentView === 'list' && (
@@ -157,7 +148,7 @@ export default function App() {
           <AIRecipeDump 
             onBack={() => setCurrentView('list')}
             onParsed={(data) => { setFormData(data); setCurrentView('form'); }}
-            onSkip={(text) => { setFormData({...defaultFormData}); setCurrentView('form'); }}
+            onSkip={() => { setFormData({...defaultFormData}); setCurrentView('form'); }}
             onRequireSettings={() => setShowSettings(true)}
           />
         )}

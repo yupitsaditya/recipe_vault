@@ -1,16 +1,20 @@
-# React + Vite
+# Recipe Vault
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A completely private, AI-powered digital recipe vault for storing and managing your favorite recipes. 
 
-Currently, two official plugins are available:
+## Features
+- **Strict Privacy**: Single-user architecture ensuring your recipes are strictly isolated and private.
+- **Cross-Device Syncing**: Use Google Sign-In to access and sync your recipes securely across all your mobile and desktop devices.
+- **Bring Your Own Key (BYOK) AI**: Provide your own Gemini API Key to automatically generate food photography, extract recipes from messy notes, and modify ingredients instantly.
+- **Offline Support**: Automatically caches your recipes so you can cook even when your kitchen loses Wi-Fi.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Architecture & Security
+- **Frontend**: React + Vite
+- **Database**: Firebase Firestore
+- **Security**: Firestore Rules enforce that each user can only read and write their own documents based on their unique `uid`. There is no shared family access or public leakage of recipe data.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Getting Started
+1. Run `npm install`
+2. Run `npm run dev` to start the local development server.
+3. Open `http://localhost:5173`
+4. Click the gear icon to provide your Gemini API key (stored securely in your local browser storage) or to sign in with Google for cross-device syncing.

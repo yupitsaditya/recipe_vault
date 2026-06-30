@@ -22,7 +22,10 @@ export function useRecipes(user) {
     if (!user && !navigator.onLine) {
       const cached = localStorage.getItem('rashika_cached_recipes');
       if (cached) {
-        try { setRecipes(JSON.parse(cached)); } catch(e){}
+        try { 
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setRecipes(JSON.parse(cached)); 
+        } catch { /* ignore */ }
       }
     }
   }, [user]);

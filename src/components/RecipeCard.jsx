@@ -29,11 +29,6 @@ export default function RecipeCard({ recipe, onClick }) {
       </div>
       
       <div className="recipe-card-content">
-        {recipe.profile && (
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#dc2626', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {recipe.profile}
-          </div>
-        )}
         <h3 className="recipe-title">{recipe.title}</h3>
       </div>
     </div>

@@ -32,7 +32,13 @@ export default function RecipeDetail({ recipe, onBack, onEdit, onDelete, onSousC
               <button onClick={() => onEdit(recipe.id)} style={{ padding: '0.75rem', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', color: '#1e3a8a', boxShadow: 'var(--shadow-sm)' }}>
                 <Edit2 size={20} />
               </button>
-              <button onClick={() => onDelete(recipe.id)} style={{ padding: '0.75rem', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', color: '#dc2626', boxShadow: 'var(--shadow-sm)' }}>
+              <button onClick={async () => {
+                try {
+                  await onDelete(recipe.id);
+                } catch (err) {
+                  alert("Failed to delete recipe: " + err.message);
+                }
+              }} style={{ padding: '0.75rem', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', color: '#dc2626', boxShadow: 'var(--shadow-sm)' }}>
                 <Trash2 size={20} />
               </button>
             </>
@@ -49,7 +55,6 @@ export default function RecipeDetail({ recipe, onBack, onEdit, onDelete, onSousC
           </div>
         )}
         <div className="hero-content">
-          {recipe.profile && <div style={{ display: 'inline-block', background: 'var(--accent)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>By {recipe.profile}</div>}
           <h1 className="text-5xl font-black mb-4">{recipe.title}</h1>
           
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>

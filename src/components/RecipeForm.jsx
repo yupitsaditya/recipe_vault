@@ -33,7 +33,7 @@ export default function RecipeForm({
     }
     
     let finalImageUrl = formData.imageUrl;
-    if (finalImageUrl.length > 1000000) { finalImageUrl = await compressImage(finalImageUrl); }
+    if (finalImageUrl.length > 100000) { finalImageUrl = await compressImage(finalImageUrl); }
 
     const safeData = {
       title: String(formData.title), timeRequired: String(formData.timeRequired),

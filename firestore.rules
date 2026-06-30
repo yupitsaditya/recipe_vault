@@ -3,8 +3,9 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Legacy mapping path based on the primaryAppId in firebase conf
     match /artifacts/rashikas-recipes-v2/public/data/recipes/{recipeId} {
-      // Allow anybody to read the public recipe vault
-      allow read: if true;
+      // Users can only read their own private recipes
+      allow read: if request.auth != null 
+                  && resource.data.authorId == request.auth.uid;
       
       // Allow currently authenticated users to create new recipes
       // Setting 'authorId' ensures we know who made them
