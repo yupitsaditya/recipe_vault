@@ -12,22 +12,9 @@ export function useRecipes(user) {
       const fetchedRecipes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       fetchedRecipes.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setRecipes(fetchedRecipes);
-      localStorage.setItem('rashika_cached_recipes', JSON.stringify(fetchedRecipes));
     }, (error) => console.error("Fetch error:", error));
 
     return () => unsubscribe();
-  }, [user]);
-
-  useEffect(() => {
-    if (!user && !navigator.onLine) {
-      const cached = localStorage.getItem('rashika_cached_recipes');
-      if (cached) {
-        try { 
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setRecipes(JSON.parse(cached)); 
-        } catch { /* ignore */ }
-      }
-    }
   }, [user]);
 
   const saveRecipe = async (recipeData, editingId) => {
