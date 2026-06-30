@@ -24,7 +24,14 @@ async function getBestModel(apiKey) {
   );
   
   // Pivot to lightweight architecture to evade free-tier quota limits
-  const preferences = ['gemini-2.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-flash-lite-latest'];
+  const preferences = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-3.0-flash-lite',
+    'gemini-2.5-flash-lite',
+    'gemini-2.0-flash-lite',
+    'gemini-flash-lite-latest'
+  ];
   for (const pref of preferences) {
     if (validModels.find(m => m.name === `models/${pref}`)) {
       localStorage.setItem('rashika_cached_model_v5', pref);
