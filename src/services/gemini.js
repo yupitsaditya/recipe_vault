@@ -1,14 +1,15 @@
+const MODEL_CACHE_KEY = 'rashika_cached_model_v6';
+const IMAGE_MODEL_CACHE_KEY = 'rashika_cached_image_model_v2';
+
 export const getGeminiKey = () => localStorage.getItem('rashika_gemini_key') || "";
 export const setGeminiKey = (key) => {
   localStorage.setItem('rashika_gemini_key', key);
-  localStorage.removeItem('rashika_cached_model_v5');
-  localStorage.removeItem('rashika_cached_image_model_v2');
+  localStorage.removeItem(MODEL_CACHE_KEY);
+  localStorage.removeItem(IMAGE_MODEL_CACHE_KEY);
 };
 
-const IMAGEN_MODEL = "imagen-4.0-generate-001";
-
 async function getBestModel(apiKey) {
-  let cached = localStorage.getItem('rashika_cached_model_v5');
+  let cached = localStorage.getItem(MODEL_CACHE_KEY);
   if (cached) return cached;
 
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -34,14 +35,14 @@ async function getBestModel(apiKey) {
   ];
   for (const pref of preferences) {
     if (validModels.find(m => m.name === `models/${pref}`)) {
-      localStorage.setItem('rashika_cached_model_v5', pref);
+      localStorage.setItem(MODEL_CACHE_KEY, pref);
       return pref;
     }
   }
   
   if (validModels.length > 0) {
     const fallback = validModels[0].name.replace('models/', '');
-    localStorage.setItem('rashika_cached_model_v5', fallback);
+    localStorage.setItem(MODEL_CACHE_KEY, fallback);
     return fallback;
   }
   
@@ -49,7 +50,7 @@ async function getBestModel(apiKey) {
 }
 
 async function getBestImageModel(apiKey) {
-  let cached = localStorage.getItem('rashika_cached_image_model_v2');
+  let cached = localStorage.getItem(IMAGE_MODEL_CACHE_KEY);
   if (cached) return cached;
 
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -65,14 +66,14 @@ async function getBestImageModel(apiKey) {
   const preferences = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image-preview', 'gemini-3-pro-image-preview'];
   for (const pref of preferences) {
     if (imageModels.find(m => m.name === `models/${pref}`)) {
-      localStorage.setItem('rashika_cached_image_model_v2', pref);
+      localStorage.setItem(IMAGE_MODEL_CACHE_KEY, pref);
       return pref;
     }
   }
   
   if (imageModels.length > 0) {
     const fallback = imageModels[0].name.replace('models/', '');
-    localStorage.setItem('rashika_cached_image_model_v2', fallback);
+    localStorage.setItem(IMAGE_MODEL_CACHE_KEY, fallback);
     return fallback;
   }
   
@@ -140,10 +141,14 @@ export const parseRecipeText = async (recipeDump) => {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    })
   });
   
   if (!response.ok) {
+    if (response.status === 404) localStorage.removeItem(MODEL_CACHE_KEY);
     const errText = await response.text();
     console.error("Gemini API Error", errText);
     throw new GeminiError(`Google AI Error: ${response.status} - ${errText}`);
@@ -212,9 +217,20 @@ export const modifyRecipeText = async (recipeToModify, promptStr) => {
   const modelName = await getBestModel(apiKey);
 
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    })
   });
+
+  if (!response.ok) {
+    if (response.status === 404) localStorage.removeItem(MODEL_CACHE_KEY);
+    const errText = await response.text();
+    console.error("Gemini API Error", errText);
+    throw new GeminiError(`Google AI Error: ${response.status} - ${errText}`);
+  }
   
   const data = await response.json();
   let resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;

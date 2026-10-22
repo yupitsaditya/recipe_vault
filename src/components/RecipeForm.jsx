@@ -14,13 +14,23 @@ export default function RecipeForm({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const updateIng = (index, field, val) => { const n = [...formData.ingredients]; n[index][field] = val; setFormData({...formData, ingredients: n}); };
-  const addIng = () => setFormData({...formData, ingredients: [...formData.ingredients, {item: '', quantity: '', unit: ''}]});
-  const remIng = (idx) => setFormData({...formData, ingredients: formData.ingredients.filter((_, i) => i !== idx)});
+  const updateIng = (index, field, val) => {
+    setFormData(prev => ({
+      ...prev,
+      ingredients: prev.ingredients.map((ing, i) => i === index ? { ...ing, [field]: val } : ing)
+    }));
+  };
+  const addIng = () => setFormData(prev => ({...prev, ingredients: [...prev.ingredients, {item: '', quantity: '', unit: ''}]}));
+  const remIng = (idx) => setFormData(prev => ({...prev, ingredients: prev.ingredients.filter((_, i) => i !== idx)}));
   
-  const updateStep = (index, field, val) => { const n = [...formData.steps]; n[index][field] = val; setFormData({...formData, steps: n}); };
-  const addStep = () => setFormData({...formData, steps: [...formData.steps, {instruction: '', timeEstimate: ''}]});
-  const remStep = (idx) => setFormData({...formData, steps: formData.steps.filter((_, i) => i !== idx)});
+  const updateStep = (index, field, val) => {
+    setFormData(prev => ({
+      ...prev,
+      steps: prev.steps.map((step, i) => i === index ? { ...step, [field]: val } : step)
+    }));
+  };
+  const addStep = () => setFormData(prev => ({...prev, steps: [...prev.steps, {instruction: '', timeEstimate: ''}]}));
+  const remStep = (idx) => setFormData(prev => ({...prev, steps: prev.steps.filter((_, i) => i !== idx)}));
 
   const handleSubmit = async (e) => {
     e.preventDefault();

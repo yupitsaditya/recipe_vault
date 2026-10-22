@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db, primaryAppId } from '../services/firebase';
 
 export function useRecipes(user) {
@@ -8,7 +8,8 @@ export function useRecipes(user) {
   useEffect(() => {
     if (!user) return;
     const recipesRef = collection(db, 'artifacts', primaryAppId, 'public', 'data', 'recipes');
-    const unsubscribe = onSnapshot(recipesRef, (snapshot) => {
+    const userRecipesQuery = query(recipesRef, where('authorId', '==', user.uid));
+    const unsubscribe = onSnapshot(userRecipesQuery, (snapshot) => {
       const fetchedRecipes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       fetchedRecipes.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setRecipes(fetchedRecipes);
