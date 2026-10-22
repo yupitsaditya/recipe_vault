@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recipe-vault-v1';
+const CACHE_NAME = 'recipe-vault-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -30,27 +30,39 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch strategy: Cache First for assets, Network First for document
+// Fetch strategy: Network-first for navigation (HTML), Stale-While-Revalidate for same-origin GET assets
 self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+
   const url = new URL(e.request.url);
-  
-  // If it's a Firestore or API request, don't intercept (let Firestore SDK handle it)
-  if (url.hostname.includes('googleapis.com') || url.hostname.includes('firebase')) {
+  if (url.origin !== self.location.origin) return;
+
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
+          return networkResponse;
+        })
+        .catch(() => caches.match(e.request).then((res) => res || caches.match('./index.html')))
+    );
     return;
   }
 
   e.respondWith(
     caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch fresh in background to update cache for next time (stale-while-revalidate)
-        fetch(e.request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse));
+      const fetchPromise = fetch(e.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(e.request, clone));
           }
-        }).catch(() => {/* ignore background fetch errors */});
-        return cachedResponse;
-      }
-      return fetch(e.request);
+          return networkResponse;
+        })
+        .catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
